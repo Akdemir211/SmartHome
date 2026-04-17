@@ -8,6 +8,7 @@ import {
 } from '@google/genai';
 import { JARVIS_SYSTEM_PROMPT } from './system-prompt';
 import { smartHomeTools, executeSmartHomeTool } from '@/lib/smart-home/tools';
+import { pcControlTools } from '@/lib/pc-control/pc-tools';
 import { base64ToInt16, int16ToBase64 } from '@/lib/audio/pcm-encoder';
 import { getOutputPipeline } from '@/lib/audio/output-analyzer';
 import { startPcmCapture, type PcmCapture } from '@/lib/audio/mic-capture';
@@ -15,6 +16,41 @@ import {
   startCameraCapture,
   stopCameraCapture,
 } from '@/lib/camera/camera-capture';
+
+const PC_TOOL_NAMES = new Set([
+  'open_application',
+  'close_application',
+  'set_volume',
+  'mute_volume',
+  'lock_computer',
+  'shutdown_computer',
+  'restart_computer',
+  'sleep_computer',
+  'cancel_shutdown',
+  'search_files',
+  'open_file',
+  'create_folder',
+]);
+
+async function executePcToolViaApi(
+  tool: string,
+  args: Record<string, unknown>,
+): Promise<{ ok: boolean; message: string; data?: unknown }> {
+  try {
+    const res = await fetch('/api/pc-control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool, args }),
+    });
+    if (!res.ok) {
+      return { ok: false, message: `PC kontrol isteği başarısız: HTTP ${res.status}` };
+    }
+    return await res.json();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Bilinmeyen hata';
+    return { ok: false, message: `PC kontrol hatası: ${msg}` };
+  }
+}
 
 export interface LiveClientCallbacks {
   onOpen?: () => void;
@@ -87,7 +123,7 @@ export class JarvisLiveClient {
             },
           },
           systemInstruction: JARVIS_SYSTEM_PROMPT,
-          tools: [{ functionDeclarations: smartHomeTools }],
+          tools: [{ functionDeclarations: [...smartHomeTools, ...pcControlTools] }],
           inputAudioTranscription: {},
           outputAudioTranscription: {},
         },
@@ -266,20 +302,29 @@ export class JarvisLiveClient {
       toolCall.functionCalls.length > 0 &&
       this.isSessionOpen()
     ) {
-      const responses = toolCall.functionCalls.map((fc) => {
-        const result = executeSmartHomeTool(
-          fc.name ?? '',
-          (fc.args as Record<string, unknown>) ?? {},
-        );
-        if (fc.name) {
-          this.callbacks.onToolExecuted?.(fc.name, result.message);
-        }
-        return {
-          id: fc.id,
-          name: fc.name ?? '',
-          response: result as unknown as Record<string, unknown>,
-        };
-      });
+      const responses = await Promise.all(
+        toolCall.functionCalls.map(async (fc) => {
+          const name = fc.name ?? '';
+          const args = (fc.args as Record<string, unknown>) ?? {};
+
+          let result: { ok: boolean; message: string; data?: unknown };
+
+          if (PC_TOOL_NAMES.has(name)) {
+            result = await executePcToolViaApi(name, args);
+          } else {
+            result = executeSmartHomeTool(name, args);
+          }
+
+          if (name) {
+            this.callbacks.onToolExecuted?.(name, result.message);
+          }
+          return {
+            id: fc.id,
+            name,
+            response: result as unknown as Record<string, unknown>,
+          };
+        }),
+      );
       try {
         this.session!.sendToolResponse({ functionResponses: responses });
       } catch {
