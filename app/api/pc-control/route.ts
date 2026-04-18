@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openApplication, closeApplication } from '@/lib/pc-control/app-launcher';
+import { openApplication, closeApplication, openUrl, runCommand, runPowerShell, playYoutube } from '@/lib/pc-control/app-launcher';
 import {
   setVolume,
   muteVolume,
@@ -16,8 +16,6 @@ interface PcRequest {
   args: Record<string, unknown>;
 }
 
-const DANGEROUS_TOOLS = new Set(['shutdown_computer', 'restart_computer', 'sleep_computer']);
-
 export async function POST(req: Request) {
   try {
     const { tool, args } = (await req.json()) as PcRequest;
@@ -32,6 +30,18 @@ export async function POST(req: Request) {
         break;
       case 'close_application':
         result = await closeApplication(String(args.name ?? ''));
+        break;
+      case 'open_url':
+        result = await openUrl(String(args.url ?? ''));
+        break;
+      case 'play_youtube':
+        result = await playYoutube(String(args.query ?? ''));
+        break;
+      case 'run_command':
+        result = await runCommand(String(args.command ?? ''));
+        break;
+      case 'run_powershell':
+        result = await runPowerShell(String(args.command ?? ''));
         break;
       case 'set_volume':
         result = await setVolume(Number(args.level ?? 50));

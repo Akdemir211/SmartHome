@@ -1,23 +1,16 @@
 import { Type, type FunctionDeclaration } from '@google/genai';
 
-const APP_NAME_ENUM = [
-  'chrome', 'firefox', 'edge', 'spotify', 'vscode', 'notepad',
-  'calculator', 'explorer', 'paint', 'word', 'excel', 'powerpoint',
-  'teams', 'discord', 'whatsapp', 'telegram',
-];
-
 export const pcControlTools: FunctionDeclaration[] = [
   {
     name: 'open_application',
     description:
-      'Bilgisayarda bir uygulama açar. Sadece beyaz listedeki uygulamalar açılabilir.',
+      'Bilgisayarda bir uygulama açar. Bilinen uygulamalar: chrome, firefox, edge, spotify, vscode, notepad, calculator, explorer, paint, word, excel, powerpoint, teams, discord, whatsapp, telegram, cmd, powershell, settings, store. Bunların dışında da herhangi bir uygulama adı verilebilir.',
     parameters: {
       type: Type.OBJECT,
       properties: {
         name: {
           type: Type.STRING,
-          description: 'Açılacak uygulamanın adı.',
-          enum: APP_NAME_ENUM,
+          description: 'Açılacak uygulamanın adı (bilinen kısayol adı veya tam uygulama adı).',
         },
       },
       required: ['name'],
@@ -26,17 +19,76 @@ export const pcControlTools: FunctionDeclaration[] = [
   {
     name: 'close_application',
     description:
-      'Bilgisayarda çalışan bir uygulamayı kapatır.',
+      'Bilgisayarda çalışan bir uygulamayı kapatır. Bilinen uygulama adı veya process adı verilebilir.',
     parameters: {
       type: Type.OBJECT,
       properties: {
         name: {
           type: Type.STRING,
-          description: 'Kapatılacak uygulamanın adı.',
-          enum: APP_NAME_ENUM,
+          description: 'Kapatılacak uygulamanın adı veya process adı.',
         },
       },
       required: ['name'],
+    },
+  },
+  {
+    name: 'open_url',
+    description:
+      'Tarayıcıda bir URL açar. Web siteleri, arama sonuçları, haritalar vb. her türlü URL açılabilir. Şarkı/video için play_youtube kullan.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        url: {
+          type: Type.STRING,
+          description: 'Açılacak tam URL (https:// ile başlamalı).',
+        },
+      },
+      required: ['url'],
+    },
+  },
+  {
+    name: 'play_youtube',
+    description:
+      'YouTube\'da bir şarkı, video veya içerik arar ve doğrudan ilk sonucu oynatır. Kullanıcı müzik dinlemek, video izlemek istediğinde bu aracı kullan. Arama sayfası değil, doğrudan video oynatılır.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        query: {
+          type: Type.STRING,
+          description: 'Aranacak şarkı adı, sanatçı veya video başlığı. Örn: "Tarkan Kuzu Kuzu", "Ferhat Göçer Yıllarım"',
+        },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'run_command',
+    description:
+      'Bilgisayarda bir CMD komutu çalıştırır ve çıktısını döndürür. Sistem bilgisi alma, ağ komutları, dosya işlemleri vb. için kullanılabilir.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        command: {
+          type: Type.STRING,
+          description: 'Çalıştırılacak CMD komutu.',
+        },
+      },
+      required: ['command'],
+    },
+  },
+  {
+    name: 'run_powershell',
+    description:
+      'Bilgisayarda bir PowerShell komutu çalıştırır ve çıktısını döndürür. Gelişmiş sistem yönetimi, bilgi sorgulama, otomasyon vb. için kullanılabilir.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        command: {
+          type: Type.STRING,
+          description: 'Çalıştırılacak PowerShell komutu.',
+        },
+      },
+      required: ['command'],
     },
   },
   {
@@ -105,7 +157,7 @@ export const pcControlTools: FunctionDeclaration[] = [
   {
     name: 'search_files',
     description:
-      'Belirtilen dizinde dosya arar. Kullanıcının ev dizini ile sınırlıdır.',
+      'Belirtilen dizinde dosya arar.',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -125,7 +177,7 @@ export const pcControlTools: FunctionDeclaration[] = [
   {
     name: 'open_file',
     description:
-      'Bir dosyayı varsayılan uygulamayla açar. Kullanıcının ev dizini ile sınırlıdır.',
+      'Bir dosyayı varsayılan uygulamayla açar.',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -140,7 +192,7 @@ export const pcControlTools: FunctionDeclaration[] = [
   {
     name: 'create_folder',
     description:
-      'Belirtilen konumda yeni bir klasör oluşturur. Kullanıcının ev dizini ile sınırlıdır.',
+      'Belirtilen konumda yeni bir klasör oluşturur.',
     parameters: {
       type: Type.OBJECT,
       properties: {

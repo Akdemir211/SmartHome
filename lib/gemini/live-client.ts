@@ -20,6 +20,10 @@ import {
 const PC_TOOL_NAMES = new Set([
   'open_application',
   'close_application',
+  'open_url',
+  'play_youtube',
+  'run_command',
+  'run_powershell',
   'set_volume',
   'mute_volume',
   'lock_computer',
