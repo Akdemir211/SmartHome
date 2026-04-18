@@ -1,12 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { writeFile, unlink } from 'fs';
-import os from 'os';
-import path from 'path';
 
 const execAsync = promisify(exec);
-const writeFileAsync = promisify(writeFile);
-const unlinkAsync = promisify(unlink);
 
 interface AppShortcut {
   label: string;
@@ -103,49 +98,68 @@ export async function runCommand(command: string): Promise<{ ok: boolean; messag
   }
 }
 
-export async function playYoutube(query: string): Promise<{ ok: boolean; message: string }> {
-  const encoded = encodeURIComponent(query).replace(/'/g, '%27');
-  const tmpScript = path.join(os.tmpdir(), `jarvis-yt-${Date.now()}.ps1`);
+async function fetchFromPiped(query: string, instance: string): Promise<string> {
+  const res = await fetch(`${instance}/search?q=${encodeURIComponent(query)}&filter=videos`, {
+    signal: AbortSignal.timeout(3000),
+  });
+  if (!res.ok) throw new Error('not ok');
+  const data = await res.json() as { items?: { url?: string }[] };
+  const url = data.items?.[0]?.url;
+  if (!url) throw new Error('no items');
+  const m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (!m) throw new Error('no id');
+  return m[1];
+}
+
+async function fetchFromYouTubeHtml(query: string): Promise<string> {
+  const res = await fetch(
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'tr-TR,tr;q=0.9',
+      },
+      signal: AbortSignal.timeout(5000),
+    },
+  );
+  if (!res.ok) throw new Error('not ok');
+  const html = await res.text();
+  const m = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+  if (!m) throw new Error('no id');
+  return m[1];
+}
+
+async function fetchVideoId(query: string): Promise<string | null> {
+  const pipedInstances = [
+    'https://pipedapi.kavin.rocks',
+    'https://pipedapi.adminforge.de',
+    'https://pipedapi.in.projectsegfau.lt',
+  ];
 
   try {
-    const ps1Content = [
-      '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12',
-      `$url = 'https://www.youtube.com/results?search_query=${encoded}'`,
-      "$headers = @{ 'User-Agent' = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'; 'Accept-Language' = 'tr-TR,tr;q=0.9' }",
-      '$response = Invoke-WebRequest -Uri $url -Headers $headers -UseBasicParsing -TimeoutSec 10',
-      '$html = $response.Content',
-      'if ($html -match \'\"videoId\":\"([a-zA-Z0-9_-]{11})\"\') { Write-Output $Matches[1] } else { Write-Output "NOT_FOUND" }',
-    ].join('\n');
+    const videoId = await Promise.any([
+      ...pipedInstances.map((inst) => fetchFromPiped(query, inst)),
+      fetchFromYouTubeHtml(query),
+    ]);
+    return videoId;
+  } catch {
+    return null;
+  }
+}
 
-    await writeFileAsync(tmpScript, ps1Content, 'utf-8');
+export async function playYoutube(query: string): Promise<{ ok: boolean; message: string }> {
+  try {
+    const videoId = await fetchVideoId(query);
 
-    const { stdout } = await execAsync(
-      `powershell -NoProfile -ExecutionPolicy Bypass -File "${tmpScript}"`,
-      { shell: 'cmd.exe', timeout: 20000 },
-    );
-
-    try { await unlinkAsync(tmpScript); } catch { /* ignore */ }
-
-    const videoId = stdout.trim().split('\n')[0].trim();
-
-    if (videoId && videoId !== 'NOT_FOUND' && videoId.length === 11) {
-      const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      await execAsync(`start "" "${watchUrl}"`, { shell: 'cmd.exe' });
+    if (videoId) {
+      await execAsync(`start "" "https://www.youtube.com/watch?v=${videoId}"`, { shell: 'cmd.exe' });
       return { ok: true, message: `YouTube'da oynatılıyor: ${query}` };
     }
 
-    const searchUrl = `https://www.youtube.com/results?search_query=${encoded}`;
-    await execAsync(`start "" "${searchUrl}"`, { shell: 'cmd.exe' });
-    return { ok: true, message: `Video bulunamadı, YouTube araması açıldı: ${query}` };
-  } catch (err) {
-    try { await unlinkAsync(tmpScript); } catch { /* ignore */ }
-    try {
-      await execAsync(`start "" "https://www.youtube.com/results?search_query=${encoded}"`, { shell: 'cmd.exe' });
-      return { ok: true, message: `YouTube araması açıldı: ${query}` };
-    } catch {
-      const msg = err instanceof Error ? err.message : 'Bilinmeyen hata';
-      return { ok: false, message: `YouTube açılamadı: ${msg}` };
-    }
+    await execAsync(`start "" "https://www.youtube.com/results?search_query=${encodeURIComponent(query)}"`, { shell: 'cmd.exe' });
+    return { ok: true, message: `YouTube araması açıldı: ${query}` };
+  } catch {
+    return { ok: false, message: `YouTube açılamadı.` };
   }
 }
 
