@@ -1,7 +1,5 @@
 'use client';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export interface SpeechRecognitionEventLike {
   resultIndex: number;
   results: ArrayLike<{

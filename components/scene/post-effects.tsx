@@ -43,13 +43,11 @@ export function PostEffects({ state }: PostEffectsProps) {
     bloom.intensity = current + (target - current) * Math.min(1, delta * 2);
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const refProp = bloomRef as any;
-
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
       <Bloom
-        ref={refProp}
+        // @ts-expect-error Bloom forwards to postprocessing BloomEffect instance; package types expect the class
+        ref={bloomRef}
         intensity={targetIntensity(state)}
         luminanceThreshold={0.12}
         luminanceSmoothing={0.6}

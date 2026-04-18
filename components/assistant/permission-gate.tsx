@@ -49,7 +49,7 @@ export function PermissionGate({ onGrant, onDenied }: PermissionGateProps) {
           </svg>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-white">
-          Jarvis'e Hoşgeldiniz
+          Jarvis&apos;e Hoşgeldiniz
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
           Sesli komutlarınızı algılayabilmem için mikrofon iznine ihtiyacım var.
