@@ -4,7 +4,7 @@ import { useDevicesStore } from './devices-store';
 import { DEVICE_KIND_LABEL } from './device-registry';
 
 export const ROOM_IDS = ['living-room', 'bedroom', 'kitchen'] as const;
-export const DEVICE_KINDS: DeviceKind[] = ['light', 'ac', 'tv', 'curtain'];
+export const DEVICE_KINDS: DeviceKind[] = ['light', 'ac', 'tv', 'curtain', 'plug'];
 
 export const smartHomeTools: FunctionDeclaration[] = [
   {
@@ -68,10 +68,30 @@ interface ToolResponse {
   data?: unknown;
 }
 
-export function executeSmartHomeTool(
+async function callTuyaApi(
+  tuyaDeviceId: string,
+  action: 'on' | 'off' | 'status',
+): Promise<ToolResponse> {
+  try {
+    const res = await fetch('/api/tuya-control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId: tuyaDeviceId, action }),
+    });
+    if (!res.ok) {
+      return { ok: false, message: `Tuya API hatası: HTTP ${res.status}` };
+    }
+    return (await res.json()) as ToolResponse;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Bilinmeyen hata';
+    return { ok: false, message: `Tuya bağlantı hatası: ${msg}` };
+  }
+}
+
+export async function executeSmartHomeTool(
   name: string,
   args: Record<string, unknown>,
-): ToolResponse {
+): Promise<ToolResponse> {
   const store = useDevicesStore.getState();
 
   if (name === 'set_device_power') {
@@ -84,6 +104,24 @@ export function executeSmartHomeTool(
     if (!DEVICE_KINDS.includes(device)) {
       return { ok: false, message: `Bilinmeyen cihaz: ${device}` };
     }
+
+    if (device === 'plug') {
+      const roomData = store.rooms.find((r) => r.id === room);
+      const plugDevice = roomData?.devices.find((d) => d.kind === 'plug');
+      if (!plugDevice?.tuyaDeviceId) {
+        return { ok: false, message: 'Bu odada Tuya bağlantılı priz bulunamadı.' };
+      }
+      const tuyaResult = await callTuyaApi(plugDevice.tuyaDeviceId, on ? 'on' : 'off');
+      if (tuyaResult.ok) {
+        store.setDeviceOn(room, device, on);
+      }
+      const roomLabel = roomData?.label ?? room;
+      tuyaResult.message = tuyaResult.ok
+        ? `${roomLabel} Akıllı Priz ${on ? 'açıldı' : 'kapatıldı'}.`
+        : tuyaResult.message;
+      return tuyaResult;
+    }
+
     const changed = store.setDeviceOn(room, device, on);
     const roomLabel =
       store.rooms.find((r) => r.id === room)?.label ?? room;

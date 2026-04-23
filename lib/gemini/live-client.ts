@@ -362,7 +362,7 @@ export class JarvisLiveClient {
           if (PC_TOOL_NAMES.has(name)) {
             result = await executePcToolViaApi(name, args);
           } else {
-            result = executeSmartHomeTool(name, args);
+            result = await executeSmartHomeTool(name, args);
           }
 
           if (name) {

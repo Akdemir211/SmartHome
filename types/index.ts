@@ -17,7 +17,7 @@ export interface FrequencyBands {
   high: number;
 }
 
-export type DeviceKind = 'light' | 'ac' | 'tv' | 'curtain';
+export type DeviceKind = 'light' | 'ac' | 'tv' | 'curtain' | 'plug';
 
 export interface Device {
   id: string;
@@ -25,6 +25,7 @@ export interface Device {
   label: string;
   on: boolean;
   temperature?: number;
+  tuyaDeviceId?: string;
 }
 
 export interface Room {

@@ -9,6 +9,7 @@ const ICONS: Record<DeviceKind, string> = {
   tv: 'M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.75v-9A1.5 1.5 0 0 1 4.5 5.25ZM8.25 20.25h7.5',
   curtain:
     'M4.5 4.5h15M6 4.5v14.25M18 4.5v14.25M6 18.75h12M9 4.5v12M15 4.5v12',
+  plug: 'M12 2v4m-3-4v4m6-4v4M6 8h12a1 1 0 0 1 1 1v2a5 5 0 0 1-4 4.9V18a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2v-2.1A5 5 0 0 1 7 11V9a1 1 0 0 1 1-1z',
 };
 
 function DeviceChip({ device }: { device: Device }) {

@@ -27,6 +27,7 @@
     "react-dom": "^18.3.1",
     "tailwind-merge": "^3.5.0",
     "three": "^0.169.0",
+    "tuyapi": "^7.7.1",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

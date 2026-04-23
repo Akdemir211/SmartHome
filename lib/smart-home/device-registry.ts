@@ -15,6 +15,7 @@ export const INITIAL_ROOMS: Room[] = [
       },
       { id: 'living-room-tv', kind: 'tv', label: 'TV', on: false },
       { id: 'living-room-curtain', kind: 'curtain', label: 'Perde', on: true },
+      { id: 'living-room-plug', kind: 'plug', label: 'Akıllı Priz', on: false, tuyaDeviceId: 'bf69693905718de50e2dbu' },
     ],
   },
   {
@@ -38,6 +39,7 @@ export const INITIAL_ROOMS: Room[] = [
     devices: [
       { id: 'kitchen-light', kind: 'light', label: 'Işık', on: false },
       { id: 'kitchen-tv', kind: 'tv', label: 'Küçük TV', on: false },
+      { id: 'kitchen-plug', kind: 'plug', label: 'Akıllı Priz', on: false, tuyaDeviceId: 'bfe63b56f79a0bda701uwo' },
     ],
   },
 ];
@@ -47,6 +49,7 @@ export const DEVICE_KIND_LABEL: Record<string, string> = {
   ac: 'Klima',
   tv: 'TV',
   curtain: 'Perde',
+  plug: 'Akıllı Priz',
 };
 
 export function findRoomByKeyword(rooms: Room[], keyword: string) {
