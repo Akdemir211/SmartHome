@@ -26,6 +26,11 @@ const JarvisScene = dynamic(
   { ssr: false },
 );
 
+const HandTracker = dynamic(
+  () => import('@/components/camera/hand-tracker').then((m) => m.HandTracker),
+  { ssr: false },
+);
+
 export function AssistantExperience() {
   const [ready, setReady] = useState(false);
   const state = useAssistantStore((s) => s.state);
@@ -254,6 +259,7 @@ export function AssistantExperience() {
           <ScreenToggle />
           <CameraToggle />
           <MicToggle />
+          {/* <HandTracker /> */}
           <ErrorBanner onRetry={() => void startLiveSession()} />
         </>
       )}

@@ -64,3 +64,7 @@ export function stopCameraCapture(): void {
 export function isCameraActive(): boolean {
   return !!stream;
 }
+
+export function getVideoElement(): HTMLVideoElement | null {
+  return videoEl;
+}

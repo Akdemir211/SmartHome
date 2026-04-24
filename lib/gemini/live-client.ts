@@ -9,6 +9,7 @@ import {
 import { JARVIS_SYSTEM_PROMPT } from './system-prompt';
 import { smartHomeTools, executeSmartHomeTool } from '@/lib/smart-home/tools';
 import { pcControlTools } from '@/lib/pc-control/pc-tools';
+import { computerControlTools, COMPUTER_TOOL_NAMES } from '@/lib/pc-control/computer-tools';
 import { base64ToInt16, int16ToBase64 } from '@/lib/audio/pcm-encoder';
 import { getOutputPipeline } from '@/lib/audio/output-analyzer';
 import { startPcmCapture, type PcmCapture } from '@/lib/audio/mic-capture';
@@ -19,6 +20,7 @@ import {
 import {
   startScreenCapture,
   stopScreenCapture,
+  setRealScreenSize,
 } from '@/lib/screen/screen-capture';
 
 const PC_TOOL_NAMES = new Set([
@@ -60,6 +62,26 @@ async function executePcToolViaApi(
   }
 }
 
+async function executeComputerToolViaApi(
+  tool: string,
+  args: Record<string, unknown>,
+): Promise<{ ok: boolean; message: string; data?: unknown }> {
+  try {
+    const res = await fetch('/api/computer-control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool, args }),
+    });
+    if (!res.ok) {
+      return { ok: false, message: `Bilgisayar kontrol hatası: HTTP ${res.status}` };
+    }
+    return await res.json();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Bilinmeyen hata';
+    return { ok: false, message: `Bilgisayar kontrol hatası: ${msg}` };
+  }
+}
+
 export interface LiveClientCallbacks {
   onOpen?: () => void;
   onUserTranscript?: (text: string, isFinal: boolean) => void;
@@ -97,6 +119,8 @@ export class JarvisLiveClient {
   private closed = false;
   private outputSubs: (() => void)[] = [];
   private connected = false;
+  private primaryW = 1920;
+  private primaryH = 1080;
 
   private voiceName: string;
 
@@ -113,6 +137,22 @@ export class JarvisLiveClient {
         'Geçerli bir Gemini API anahtarı bulunamadı. .env.local dosyasını kontrol edin.',
       );
     }
+
+    let screenInfo = { x: 0, y: 0, width: 1920, height: 1080, primaryWidth: 1920, primaryHeight: 1080 };
+    try {
+      const r = await fetch('/api/computer-control');
+      if (r.ok) screenInfo = await r.json();
+    } catch { /* varsayılanı kullan */ }
+
+    const pw = screenInfo.primaryWidth || 1920;
+    const ph = screenInfo.primaryHeight || 1080;
+    this.primaryW = pw;
+    this.primaryH = ph;
+    const isMulti = screenInfo.width > pw * 1.5;
+
+    const screenPrompt = `\n\nEKRAN BİLGİSİ\n- Ana monitör çözünürlüğü: ${pw}x${ph}\n- Sanal ekran: ${screenInfo.width}x${screenInfo.height} (ofset: ${screenInfo.x},${screenInfo.y})${isMulti ? `\n- ÇOKLU MONİTÖR: ${Math.round(screenInfo.width / pw)} monitör tespit edildi.` : ''}\n- Ekran paylaşımında genellikle TEK bir monitör paylaşılır.\n- Paylaşılan ekranda gördüğün görüntü ${pw}x${ph} çözünürlüğündedir.\n- Fare koordinatları HER ZAMAN gerçek ekran piksel koordinatlarında olmalı.\n- Ana monitör koordinatları: (0,0) sol üst — (${pw - 1},${ph - 1}) sağ alt.\n- Ekrandaki bir öğenin yüzdesel konumunu bul, sonra ${pw}x${ph}'e çevir.\n- Örnek: Ekranın tam ortası → (${Math.round(pw / 2)}, ${Math.round(ph / 2)})\n- Örnek: Ekranın sağ alt çeyreği → (${Math.round(pw * 0.75)}, ${Math.round(ph * 0.75)})`;
+
+    const fullPrompt = JARVIS_SYSTEM_PROMPT + screenPrompt;
 
     const ai = new GoogleGenAI({ apiKey: token });
 
@@ -132,8 +172,8 @@ export class JarvisLiveClient {
               prebuiltVoiceConfig: { voiceName: this.voiceName },
             },
           },
-          systemInstruction: JARVIS_SYSTEM_PROMPT,
-          tools: [{ functionDeclarations: [...smartHomeTools, ...pcControlTools] }],
+          systemInstruction: fullPrompt,
+          tools: [{ functionDeclarations: [...smartHomeTools, ...pcControlTools, ...computerControlTools] }],
           inputAudioTranscription: {},
           outputAudioTranscription: {},
         },
@@ -243,6 +283,7 @@ export class JarvisLiveClient {
     if (this.screenShareActive) return;
     this.stopCameraStreaming();
     this.screenShareActive = true;
+    setRealScreenSize(this.primaryW, this.primaryH);
     try {
       await startScreenCapture(
         (base64) => {
@@ -359,7 +400,9 @@ export class JarvisLiveClient {
 
           let result: { ok: boolean; message: string; data?: unknown };
 
-          if (PC_TOOL_NAMES.has(name)) {
+          if (COMPUTER_TOOL_NAMES.has(name)) {
+            result = await executeComputerToolViaApi(name, args);
+          } else if (PC_TOOL_NAMES.has(name)) {
             result = await executePcToolViaApi(name, args);
           } else {
             result = await executeSmartHomeTool(name, args);

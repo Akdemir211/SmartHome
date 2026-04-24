@@ -16,6 +16,7 @@ export default function ErkenKayitPage() {
   const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
   const splineRef = useRef<SplineSceneHandle>(null)
 
   useEffect(() => {
@@ -33,9 +34,28 @@ export default function ErkenKayitPage() {
     if (!email || !name) return
 
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsSubmitted(true)
-    setIsLoading(false)
+    setErrorMsg('')
+
+    try {
+      const res = await fetch('/api/early-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErrorMsg(data.message ?? 'Bir hata oluştu.')
+        return
+      }
+
+      setIsSubmitted(true)
+    } catch {
+      setErrorMsg('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.')
+    } finally {
+      setIsLoading(false)
+    }
   }, [email, name])
 
   return (
@@ -203,6 +223,12 @@ export default function ErkenKayitPage() {
                       </span>
                     </button>
                   </form>
+
+                  {errorMsg && (
+                    <p className="text-sm text-red-400 mt-4 text-center">
+                      {errorMsg}
+                    </p>
+                  )}
 
                   <p className="text-xs text-neutral-600 mt-6 text-center">
                     Kaydınızla birlikte gizlilik politikamızı kabul etmiş olursunuz.
