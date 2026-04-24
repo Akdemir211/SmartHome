@@ -3,7 +3,7 @@ import type { Room } from '@/types';
 export const INITIAL_ROOMS: Room[] = [
   {
     id: 'living-room',
-    label: 'Oturma Odası',
+    label: 'Benim Odam',
     devices: [
       { id: 'living-room-light', kind: 'light', label: 'Işık', on: true },
       {
@@ -16,13 +16,15 @@ export const INITIAL_ROOMS: Room[] = [
       { id: 'living-room-tv', kind: 'tv', label: 'TV', on: false },
       { id: 'living-room-curtain', kind: 'curtain', label: 'Perde', on: true },
       { id: 'living-room-plug', kind: 'plug', label: 'Akıllı Priz', on: false, tuyaDeviceId: 'bf69693905718de50e2dbu' },
+      { id: 'living-room-bulb', kind: 'bulb', label: 'Akıllı Ampul', on: false, tuyaDeviceId: 'bfbc4efd25bb1c40b2dhsk' },
     ],
   },
   {
     id: 'bedroom',
-    label: 'Yatak Odası',
+    label: 'Oturma Odası',
     devices: [
       { id: 'bedroom-light', kind: 'light', label: 'Işık', on: false },
+      { id: 'bedroom-bulb', kind: 'bulb', label: 'Akıllı Ampul', on: false, tuyaDeviceId: 'bfaaa45cd34ff7dbdbrrch' },
       {
         id: 'bedroom-ac',
         kind: 'ac',
@@ -50,6 +52,7 @@ export const DEVICE_KIND_LABEL: Record<string, string> = {
   tv: 'TV',
   curtain: 'Perde',
   plug: 'Akıllı Priz',
+  bulb: 'Akıllı Ampul',
 };
 
 export function findRoomByKeyword(rooms: Room[], keyword: string) {

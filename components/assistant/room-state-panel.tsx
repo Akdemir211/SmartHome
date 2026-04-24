@@ -10,10 +10,35 @@ const ICONS: Record<DeviceKind, string> = {
   curtain:
     'M4.5 4.5h15M6 4.5v14.25M18 4.5v14.25M6 18.75h12M9 4.5v12M15 4.5v12',
   plug: 'M12 2v4m-3-4v4m6-4v4M6 8h12a1 1 0 0 1 1 1v2a5 5 0 0 1-4 4.9V18a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2v-2.1A5 5 0 0 1 7 11V9a1 1 0 0 1 1-1z',
+  bulb: 'M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 5.072 0l-.534.462a2 2 0 0 0-.736 1.546V18a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-.249a2 2 0 0 0-.736-1.546z',
 };
+
+const COLOR_CSS: Record<string, string> = {
+  'kırmızı': '#ef4444',
+  'turuncu': '#f97316',
+  'sarı': '#eab308',
+  'yeşil': '#22c55e',
+  'turkuaz': '#06b6d4',
+  'mavi': '#3b82f6',
+  'mor': '#a855f7',
+  'pembe': '#ec4899',
+  'lavanta': '#c084fc',
+  'beyaz': '#f8fafc',
+};
+
+function bulbStatusText(device: Device): string {
+  if (!device.on) return 'Kapalı';
+  const parts: string[] = [];
+  if (device.color && device.color !== 'beyaz') parts.push(device.color);
+  if (device.brightness !== undefined) parts.push(`%${device.brightness}`);
+  return parts.length > 0 ? parts.join(' · ') : 'Açık';
+}
 
 function DeviceChip({ device }: { device: Device }) {
   const icon = ICONS[device.kind] ?? ICONS.light;
+  const isBulb = device.kind === 'bulb';
+  const bulbColor = isBulb && device.on && device.color ? COLOR_CSS[device.color] : undefined;
+
   return (
     <div
       className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition ${
@@ -26,7 +51,7 @@ function DeviceChip({ device }: { device: Device }) {
         <svg
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
+          stroke={bulbColor ?? 'currentColor'}
           strokeWidth={1.4}
           className="h-4 w-4"
           aria-hidden
@@ -40,9 +65,11 @@ function DeviceChip({ device }: { device: Device }) {
       <span className="text-[10px] uppercase tracking-[0.25em]">
         {device.kind === 'ac' && device.on
           ? `${device.temperature ?? 22}°`
-          : device.on
-            ? 'Açık'
-            : 'Kapalı'}
+          : isBulb
+            ? bulbStatusText(device)
+            : device.on
+              ? 'Açık'
+              : 'Kapalı'}
       </span>
     </div>
   );
