@@ -6,7 +6,7 @@ import {
   type LiveServerMessage,
   type Session,
 } from '@google/genai';
-import { JARVIS_SYSTEM_PROMPT } from './system-prompt';
+import { ALEX_SYSTEM_PROMPT } from './system-prompt';
 import { smartHomeTools, executeSmartHomeTool } from '@/lib/smart-home/tools';
 import { pcControlTools } from '@/lib/pc-control/pc-tools';
 import { computerControlTools, COMPUTER_TOOL_NAMES } from '@/lib/pc-control/computer-tools';
@@ -108,7 +108,7 @@ async function fetchEphemeralToken(): Promise<TokenPayload> {
   return (await res.json()) as TokenPayload;
 }
 
-export class JarvisLiveClient {
+export class AlexLiveClient {
   private session: Session | null = null;
   private capture: PcmCapture | null = null;
   private cameraActive = false;
@@ -152,7 +152,7 @@ export class JarvisLiveClient {
 
     const screenPrompt = `\n\nEKRAN BİLGİSİ\n- Ana monitör çözünürlüğü: ${pw}x${ph}\n- Sanal ekran: ${screenInfo.width}x${screenInfo.height} (ofset: ${screenInfo.x},${screenInfo.y})${isMulti ? `\n- ÇOKLU MONİTÖR: ${Math.round(screenInfo.width / pw)} monitör tespit edildi.` : ''}\n- Ekran paylaşımında genellikle TEK bir monitör paylaşılır.\n- Paylaşılan ekranda gördüğün görüntü ${pw}x${ph} çözünürlüğündedir.\n- Fare koordinatları HER ZAMAN gerçek ekran piksel koordinatlarında olmalı.\n- Ana monitör koordinatları: (0,0) sol üst — (${pw - 1},${ph - 1}) sağ alt.\n- Ekrandaki bir öğenin yüzdesel konumunu bul, sonra ${pw}x${ph}'e çevir.\n- Örnek: Ekranın tam ortası → (${Math.round(pw / 2)}, ${Math.round(ph / 2)})\n- Örnek: Ekranın sağ alt çeyreği → (${Math.round(pw * 0.75)}, ${Math.round(ph * 0.75)})`;
 
-    const fullPrompt = JARVIS_SYSTEM_PROMPT + screenPrompt;
+    const fullPrompt = ALEX_SYSTEM_PROMPT + screenPrompt;
 
     const ai = new GoogleGenAI({ apiKey: token });
 
@@ -184,13 +184,13 @@ export class JarvisLiveClient {
           },
           onmessage: (msg: LiveServerMessage) => {
             this.handleMessage(msg).catch((e) => {
-              console.error('[JarvisLive] mesaj işleme hatası', e);
+              console.error('[AlexLive] mesaj işleme hatası', e);
             });
           },
           onerror: (err: ErrorEvent) => {
             this.connected = false;
             const msg = err.message || 'Gemini Live bağlantı hatası';
-            console.error('[JarvisLive] hata:', msg);
+            console.error('[AlexLive] hata:', msg);
             this.callbacks.onError?.(msg);
           },
           onclose: (e: CloseEvent) => {
@@ -427,11 +427,11 @@ export class JarvisLiveClient {
   }
 }
 
-export async function createJarvisLiveClient(
+export async function createAlexLiveClient(
   callbacks: LiveClientCallbacks,
   voiceName = 'Charon',
-): Promise<JarvisLiveClient> {
-  const client = new JarvisLiveClient(callbacks, voiceName);
+): Promise<AlexLiveClient> {
+  const client = new AlexLiveClient(callbacks, voiceName);
   await client.connect();
   return client;
 }

@@ -30,7 +30,7 @@ function stateToValue(state: AssistantState): number {
   }
 }
 
-export function JarvisScene({ getAnalyser }: { getAnalyser: () => AnalyserNode | null }) {
+export function AlexScene({ getAnalyser }: { getAnalyser: () => AnalyserNode | null }) {
   const frequencyRef = useFrequencyRef(getAnalyser);
   const state = useAssistantStore((s) => s.state);
   const stateRef = useRef<number>(stateToValue(state));

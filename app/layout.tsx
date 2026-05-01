@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jarvis — Akıllı Ev Asistanı',
+  title: 'Alex — Akıllı Ev Asistanı',
   description:
     'Gemini tabanlı, sesli komutlarla çalışan 3D akıllı ev asistanı arayüzü.',
   icons: {

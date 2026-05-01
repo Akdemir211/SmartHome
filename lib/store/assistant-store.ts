@@ -83,7 +83,7 @@ export function describeState(state: AssistantState): string {
     case 'greeting':
       return 'Karşılıyor';
     case 'idleWakeListening':
-      return '"Hey Jarvis" deyin';
+      return '"Hey Alex" deyin';
     case 'activeSession':
       return 'Yapay Zeka Dinliyor';
     case 'thinking':

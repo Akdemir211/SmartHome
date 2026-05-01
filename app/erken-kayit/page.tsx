@@ -97,7 +97,7 @@ export default function ErkenKayitPage() {
                 Geleceği
               </h1>
               <p className="mt-5 text-neutral-400 max-w-lg text-lg md:text-xl leading-relaxed">
-                Jarvis ile evinizi sesinizle kontrol edin. Yapay zeka destekli
+                Alex ile evinizi sesinizle kontrol edin. Yapay zeka destekli
                 akıllı ev asistanımıza erken erişim kazanın.
               </p>
 

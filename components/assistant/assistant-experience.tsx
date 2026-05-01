@@ -8,10 +8,10 @@ import { startMicPipeline, getMicPipeline } from '@/lib/audio/mic-analyzer';
 import { getOutputPipeline } from '@/lib/audio/output-analyzer';
 import { createWakeWordListener } from '@/lib/speech/wake-word';
 import {
-  createJarvisLiveClient,
-  type JarvisLiveClient,
+  createAlexLiveClient,
+  type AlexLiveClient,
 } from '@/lib/gemini/live-client';
-import { JarvisUI } from './jarvis-ui';
+import { AlexUI } from './jarvis-ui';
 import { MicToggle } from './mic-toggle';
 import { CameraToggle } from './camera-toggle';
 import { ScreenToggle } from './screen-toggle';
@@ -21,8 +21,8 @@ import { Spotlight } from '@/components/ui/spotlight';
 import { SpotlightCursor } from '@/components/ui/spotlight-cursor';
 import { FloatingElements } from '@/components/ui/floating-elements';
 
-const JarvisScene = dynamic(
-  () => import('@/components/scene/jarvis-scene').then((m) => m.JarvisScene),
+const AlexScene = dynamic(
+  () => import('@/components/scene/jarvis-scene').then((m) => m.AlexScene),
   { ssr: false },
 );
 
@@ -49,7 +49,7 @@ export function AssistantExperience() {
     voiceNameRef.current = voiceName;
   }, [voiceName]);
 
-  const liveClientRef = useRef<JarvisLiveClient | null>(null);
+  const liveClientRef = useRef<AlexLiveClient | null>(null);
   const wakeListenerRef = useRef<ReturnType<typeof createWakeWordListener> | null>(null);
   const closingRef = useRef(false);
   const connectingRef = useRef(false);
@@ -74,7 +74,7 @@ export function AssistantExperience() {
       wakeListenerRef.current?.stop();
       await resumeAudioContext();
 
-      const client = await createJarvisLiveClient(
+      const client = await createAlexLiveClient(
         {
           onOpen: () => {
             setState('greeting');
@@ -248,12 +248,12 @@ export function AssistantExperience() {
         onClick={handleCanvasTap}
         className="absolute inset-0"
       >
-        <JarvisScene getAnalyser={getAnalyser} />
+        <AlexScene getAnalyser={getAnalyser} />
       </div>
 
       {ready && (
         <>
-          <JarvisUI />
+          <AlexUI />
           <VoiceSettingsButton />
           <VoiceSelectorModal />
           <ScreenToggle />
@@ -267,7 +267,7 @@ export function AssistantExperience() {
       <header className="pointer-events-none absolute left-6 top-6 z-10 flex items-center gap-2.5">
         <div className="h-2 w-2 rounded-full bg-jarvis-purple/70" />
         <span className="text-xs uppercase tracking-[0.35em] text-neutral-500">
-          Jarvis · Smart Home
+          Alex · Smart Home
         </span>
       </header>
 

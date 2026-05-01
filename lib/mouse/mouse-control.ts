@@ -1,15 +1,32 @@
-import koffi from 'koffi';
+import os from 'os';
 
-const user32 = koffi.load('user32.dll');
+const IS_WIN = os.platform() === 'win32';
 
-const SetProcessDPIAware = user32.func('int __stdcall SetProcessDPIAware()');
-SetProcessDPIAware();
+let SetCursorPos: (x: number, y: number) => number;
+let GetSystemMetrics: (idx: number) => number;
+let mouseEventFn: (...args: number[]) => void;
 
-const SetCursorPos = user32.func('int __stdcall SetCursorPos(int x, int y)');
-const GetSystemMetrics = user32.func('int __stdcall GetSystemMetrics(int nIndex)');
-const mouseEventFn = user32.func(
-  'void __stdcall mouse_event(unsigned int, unsigned int, unsigned int, unsigned int, uintptr_t)',
-);
+if (IS_WIN) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const koffi = require('koffi');
+  const user32 = koffi.load('user32.dll');
+  const SetProcessDPIAware = user32.func('int __stdcall SetProcessDPIAware()');
+  SetProcessDPIAware();
+
+  SetCursorPos = user32.func('int __stdcall SetCursorPos(int x, int y)');
+  GetSystemMetrics = user32.func('int __stdcall GetSystemMetrics(int nIndex)');
+  mouseEventFn = user32.func(
+    'void __stdcall mouse_event(unsigned int, unsigned int, unsigned int, unsigned int, uintptr_t)',
+  );
+} else {
+  SetCursorPos = () => 0;
+  GetSystemMetrics = (idx: number) => {
+    if (idx === 0 || idx === 78) return 1920;
+    if (idx === 1 || idx === 79) return 1080;
+    return 0;
+  };
+  mouseEventFn = () => {};
+}
 
 const LEFTDOWN = 0x0002;
 const LEFTUP = 0x0004;
@@ -18,12 +35,12 @@ const RIGHTUP = 0x0010;
 
 export function getVirtualScreen() {
   return {
-    x: GetSystemMetrics(76),       // SM_XVIRTUALSCREEN
-    y: GetSystemMetrics(77),       // SM_YVIRTUALSCREEN
-    width: GetSystemMetrics(78),   // SM_CXVIRTUALSCREEN
-    height: GetSystemMetrics(79),  // SM_CYVIRTUALSCREEN
-    primaryWidth: GetSystemMetrics(0),   // SM_CXSCREEN
-    primaryHeight: GetSystemMetrics(1),  // SM_CYSCREEN
+    x: GetSystemMetrics(76),
+    y: GetSystemMetrics(77),
+    width: GetSystemMetrics(78),
+    height: GetSystemMetrics(79),
+    primaryWidth: GetSystemMetrics(0),
+    primaryHeight: GetSystemMetrics(1),
   };
 }
 

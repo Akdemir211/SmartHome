@@ -1,15 +1,24 @@
-import koffi from 'koffi';
+import os from 'os';
 
-const user32 = koffi.load('user32.dll');
+const IS_WIN = os.platform() === 'win32';
 
-const SendInput = user32.func(
-  'uint32_t __stdcall SendInput(uint32_t nInputs, void* pInputs, int32_t cbSize)',
-);
+let SendInput: (n: number, buf: Buffer, size: number) => number;
 
 const INPUT_KEYBOARD = 1;
-const INPUT_SIZE = 40; // sizeof(INPUT) on x64
+const INPUT_SIZE = 40;
 const KEYEVENTF_UNICODE = 0x0004;
 const KEYEVENTF_KEYUP = 0x0002;
+
+if (IS_WIN) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const koffi = require('koffi');
+  const user32 = koffi.load('user32.dll');
+  SendInput = user32.func(
+    'uint32_t __stdcall SendInput(uint32_t nInputs, void* pInputs, int32_t cbSize)',
+  );
+} else {
+  SendInput = () => 0;
+}
 
 const VK: Record<string, number> = {
   ctrl: 0x11, control: 0x11,
@@ -44,8 +53,8 @@ function resolveVk(key: string): number {
   if (VK[k] !== undefined) return VK[k];
   if (k.length === 1) {
     const c = k.charCodeAt(0);
-    if (c >= 0x61 && c <= 0x7A) return c - 0x20; // a-z
-    if (c >= 0x30 && c <= 0x39) return c;         // 0-9
+    if (c >= 0x61 && c <= 0x7A) return c - 0x20;
+    if (c >= 0x30 && c <= 0x39) return c;
   }
   return 0;
 }

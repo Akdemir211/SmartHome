@@ -11,13 +11,13 @@ export interface WakeWordListener {
   isSupported: boolean;
 }
 
-// "hey jarvis" varyasyonları: Türkçe STT bunu bazen "hey carvis", "ey jarvis",
-// "hacivat" gibi algılayabiliyor; toleranslı eşleştiriyoruz.
+// "hey alex" varyasyonları: Türkçe STT bunu bazen "hey aleks", "ey alex" gibi
+// algılayabiliyor; toleranslı eşleştiriyoruz.
 const WAKE_PATTERNS = [
-  /\bhey\s*(j|c|ç|s)[aeıi]rv[ıi]s\b/i,
-  /\bey\s*(j|c)[aeıi]rv[ıi]s\b/i,
-  /\bhe?y?\s*jarvis\b/i,
-  /\bjarvis\b/i,
+  /\bhey\s*al[ée]?x\b/i,
+  /\bey\s*al[ée]?x\b/i,
+  /\bhe?y?\s*alex\b/i,
+  /\balex\b/i,
 ];
 
 function matchesWakeWord(text: string): boolean {

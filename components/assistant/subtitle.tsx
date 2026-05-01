@@ -15,7 +15,7 @@ export function Subtitle() {
         }`}
       >
         <span className="mr-2 text-[10px] uppercase tracking-[0.3em] text-slate-500">
-          {isUser ? 'Siz' : 'Jarvis'}
+          {isUser ? 'Siz' : 'Alex'}
         </span>
         <span>{last.text}</span>
       </div>

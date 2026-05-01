@@ -3,7 +3,7 @@
 import { useAssistantStore, describeState } from '@/lib/store/assistant-store';
 import { useMemo } from 'react';
 
-export function JarvisUI() {
+export function AlexUI() {
   const state = useAssistantStore((s) => s.state);
   const captions = useAssistantStore((s) => s.captions);
 

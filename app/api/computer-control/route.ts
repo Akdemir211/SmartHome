@@ -35,7 +35,7 @@ function fail(message: string) {
 }
 
 async function takeScreenshot(): Promise<{ base64: string; width: number; height: number }> {
-  const tmp = path.join(os.tmpdir(), `jarvis_ss_${Date.now()}.png`);
+  const tmp = path.join(os.tmpdir(), `alex_ss_${Date.now()}.png`);
   const screen = getVirtualScreen();
   const pw = screen.primaryWidth;
   const ph = screen.primaryHeight;

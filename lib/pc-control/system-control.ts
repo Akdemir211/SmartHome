@@ -52,7 +52,7 @@ export async function lockComputer(): Promise<{ ok: boolean; message: string }> 
 
 export async function shutdownComputer(): Promise<{ ok: boolean; message: string }> {
   try {
-    await execAsync('shutdown /s /t 5 /c "Jarvis tarafından kapatılıyor"', { shell: 'cmd.exe' });
+    await execAsync('shutdown /s /t 5 /c "Alex tarafından kapatılıyor"', { shell: 'cmd.exe' });
     return { ok: true, message: 'Bilgisayar 5 saniye içinde kapanacak.' };
   } catch {
     return { ok: false, message: 'Bilgisayar kapatılamadı.' };
@@ -61,7 +61,7 @@ export async function shutdownComputer(): Promise<{ ok: boolean; message: string
 
 export async function restartComputer(): Promise<{ ok: boolean; message: string }> {
   try {
-    await execAsync('shutdown /r /t 5 /c "Jarvis tarafından yeniden başlatılıyor"', { shell: 'cmd.exe' });
+    await execAsync('shutdown /r /t 5 /c "Alex tarafından yeniden başlatılıyor"', { shell: 'cmd.exe' });
     return { ok: true, message: 'Bilgisayar 5 saniye içinde yeniden başlayacak.' };
   } catch {
     return { ok: false, message: 'Bilgisayar yeniden başlatılamadı.' };

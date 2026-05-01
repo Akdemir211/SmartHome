@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { JARVIS_SYSTEM_PROMPT } from '@/lib/gemini/system-prompt';
+import { ALEX_SYSTEM_PROMPT } from '@/lib/gemini/system-prompt';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       model: process.env.GEMINI_TEXT_MODEL ?? 'gemini-2.5-flash',
       contents: prompt,
       config: {
-        systemInstruction: JARVIS_SYSTEM_PROMPT,
+        systemInstruction: ALEX_SYSTEM_PROMPT,
       },
     });
     const text = response.text ?? '';
