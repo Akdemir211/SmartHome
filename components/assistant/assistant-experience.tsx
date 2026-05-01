@@ -26,10 +26,6 @@ const AlexScene = dynamic(
   { ssr: false },
 );
 
-const HandTracker = dynamic(
-  () => import('@/components/camera/hand-tracker').then((m) => m.HandTracker),
-  { ssr: false },
-);
 
 export function AssistantExperience() {
   const [ready, setReady] = useState(false);
@@ -259,7 +255,6 @@ export function AssistantExperience() {
           <ScreenToggle />
           <CameraToggle />
           <MicToggle />
-          {/* <HandTracker /> */}
           <ErrorBanner onRetry={() => void startLiveSession()} />
         </>
       )}
