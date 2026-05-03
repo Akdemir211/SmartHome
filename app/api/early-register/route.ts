@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { sendEmail } from '@/lib/email/send';
+import { buildWelcomeEmail } from '@/lib/email/templates/welcome';
 
 interface RegisterBody {
   name: string;
@@ -50,6 +52,13 @@ export async function POST(req: NextRequest) {
         { ok: false, message: 'Kayıt sırasında bir hata oluştu.' },
         { status: 500 },
       );
+    }
+
+    const { subject, html } = buildWelcomeEmail(name);
+    try {
+      await sendEmail({ to: email, subject, html });
+    } catch (mailErr) {
+      console.error('[early-register] Mail gönderilemedi:', mailErr);
     }
 
     return NextResponse.json({ ok: true, message: 'Kayıt başarılı!' });
